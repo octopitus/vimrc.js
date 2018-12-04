@@ -11,14 +11,14 @@ endtry
 
 call plug#end()
 
+source ~/.vimrc.js/vimrc.local
+
 syntax enable
 set number
 
 function! StrTrim(txt)
   return substitute(a:txt, '^\n*\s*\(.\{-}\)\n*\s*$', '\1', '')
 endfunction
-
-let g:flow_path = StrTrim(system('PATH=$(npm bin):$PATH && which flow'))
 
 " === Plugin settings ===
 
@@ -46,6 +46,7 @@ if has('nvim')
 
   let g:neomake_javascript_flow_exe = g:flow_path
   let g:neomake_jsx_flow_exe = g:flow_path
+  let g:neomake_javascript_eslint_exe = g:eslint_path
 
   autocmd! BufWritePost * Neomake
 else
@@ -74,8 +75,3 @@ inoremap <C-T> <ESC>:FZF<CR>i
 " == scrooloose/nerdtree ==
 nnoremap <C-\> :NERDTreeToggle<CR>
 inoremap <C-\> <ESC>:NERDTreeToggle<CR>
-
-try
-  source ~/.vimrc.js/vimrc.local
-catch
-endtry
