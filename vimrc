@@ -1,12 +1,23 @@
 set nocompatible
 syntax enable
-set number
 
-" Indentation
-filetype plugin indent on
-set tabstop=2
+set number
+set linebreak
+set showbreak=+++
+set textwidth=100
+set showmatch
+set visualbell
+
+set hlsearch
+set smartcase
+set ignorecase
+set incsearch
+
+set autoindent
 set shiftwidth=2
-set expandtab
+set smartindent
+set smarttab
+set softtabstop=2
 
 " if hidden not set, TextEdit might fail.
 set hidden
@@ -32,15 +43,14 @@ hi Normal ctermbg=NONE
 " use system clipboard as default clipboard
 :set clipboard=unnamed
 
+" Enable completion where available.
+" This setting must be set before ALE is loaded.
+let g:ale_completion_enabled = 1
+
 " === Plugins ===
 call plug#begin()
-
-try
-  source ~/.vimrc.js/vimrc.plugs
-  source ~/.vimrc.js/vimrc.plugs.local
-catch
-endtry
-
+source ~/.vimrc.js/vimrc.plugs
+source ~/.vimrc.js/vimrc.plugs.local
 call plug#end()
 
 source ~/.vimrc.js/vimrc.local
@@ -86,8 +96,6 @@ let g:lightline.active = {
 \ }
 
 " === Completion ===
-let g:ale_completion_enabled = 1
-
 " Use tab to trigger completion and tab/shift-tab to navigate results
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? "\<C-n>" :
@@ -141,3 +149,49 @@ function! <SID>LocationNext()
         lfirst
     endtry
 endfunction
+
+" Remap keys for gotos
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+" Use K for show documentation in preview window
+nnoremap <silent> K :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+  if &filetype == 'vim'
+    execute 'h '.expand('<cword>')
+  else
+    call CocAction('doHover')
+  endif
+endfunction
+
+" Highlight symbol under cursor on CursorHold
+autocmd CursorHold * silent call CocActionAsync('highlight')
+
+" Remap for rename current word
+nmap <leader>rn <Plug>(coc-rename)
+
+" Remap for format selected region
+vmap <leader>f  <Plug>(coc-format-selected)
+nmap <leader>f  <Plug>(coc-format-selected)
+
+" Setup formatexpr specified filetype(s).
+augroup mygroup
+  autocmd!
+  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+augroup end
+
+" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
+vmap <leader>a  <Plug>(coc-codeaction-selected)
+nmap <leader>a  <Plug>(coc-codeaction-selected)
+
+" Remap for do codeAction of current line
+nmap <leader>ac  <Plug>(coc-codeaction)
+
+" Use `:Format` for format current buffer
+command! -nargs=0 Format :call CocAction('format')
+
+" Use `:Fold` for fold current buffer
+command! -nargs=? Fold :call     CocAction('fold', <f-args>)

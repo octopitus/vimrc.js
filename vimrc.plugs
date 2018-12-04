@@ -9,6 +9,7 @@ Plug 'airblade/vim-gitgutter'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'itchyny/lightline.vim'
 Plug 'maximbaz/lightline-ale'
+Plug 'prettier/vim-prettier', { 'do': 'yarn install' }
 
 " == Autocomplete plugins ==
 Plug 'w0rp/ale'
