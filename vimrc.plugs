@@ -8,15 +8,11 @@ Plug 'jiangmiao/auto-pairs'
 Plug 'airblade/vim-gitgutter'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'itchyny/lightline.vim'
+Plug 'maximbaz/lightline-ale'
 
 " == Autocomplete plugins ==
-if has('nvim')
-  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins'  }
-  Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
-  Plug 'steelsojka/deoplete-flow'
-else
-  Plug 'Valloric/YouCompleteMe', { 'do': './install.py --tern-completer' }
-endif
+Plug 'w0rp/ale'
+Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 
 " == JavaScript syntax highlighting ==
 Plug 'othree/yajs.vim'
@@ -29,12 +25,4 @@ if v:version < 704
   Plug 'JulesWang/css.vim'
 endif
 Plug 'cakebaker/scss-syntax.vim'
-
-" == JavaScript tools integration ==
-if has('nvim')
-  Plug 'neomake/neomake'
-else
-  Plug 'scrooloose/syntastic'
-  Plug 'flowtype/vim-flow'
-endif
 

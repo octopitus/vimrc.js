@@ -1,4 +1,36 @@
 set nocompatible
+syntax enable
+set number
+
+" Indentation
+filetype plugin indent on
+set tabstop=2
+set shiftwidth=2
+set expandtab
+
+" if hidden not set, TextEdit might fail.
+set hidden
+
+" Better display for messages
+set cmdheight=2
+
+" Smaller updatetime for CursorHold & CursorHoldI
+set updatetime=300
+
+" always show signcolumns
+set signcolumn=yes
+
+" use 256 colors
+:set t_Co=256
+
+" fix background color behaviour
+hi Normal ctermbg=NONE
+
+" make backspace work like you'd expect in insert mode
+:set backspace=indent,eol,start
+
+" use system clipboard as default clipboard
+:set clipboard=unnamed
 
 " === Plugins ===
 call plug#begin()
@@ -13,65 +45,99 @@ call plug#end()
 
 source ~/.vimrc.js/vimrc.local
 
-syntax enable
-set number
+" === STATUS/TAB BARS ===
 
-function! StrTrim(txt)
-  return substitute(a:txt, '^\n*\s*\(.\{-}\)\n*\s*$', '\1', '')
+" always show status bar
+set laststatus=2
+" don't show -- INSERT --, pointless as we have a status bar
+set noshowmode
+
+" Initialize lightline config
+let g:lightline = {}
+
+" Disable lightline's tab bar
+let g:lightline.enable = {'tabline': 0}
+
+" Add lightline-ale components to lightline
+let g:lightline.component_expand = {
+\  'linter_checking': 'lightline#ale#checking',
+\  'linter_warnings': 'lightline#ale#warnings',
+\  'linter_errors': 'lightline#ale#errors',
+\  'linter_ok': 'lightline#ale#ok'
+\ }
+
+" Set colours for the components
+let g:lightline.component_type = {
+\  'linter_checking': 'left',
+\  'linter_warnings': 'warning',
+\  'linter_errors': 'error',
+\  'linter_ok': 'left'
+\ }
+
+" Configure lightline's statusbar
+let g:lightline.active = {
+\  'left': [[ 'mode', 'paste'], ['readonly', 'relativepath', 'modified']],
+\  'right': [
+\    ['lineinfo'],
+\    ['percent'],
+\    ['fileformat', 'fileencoding', 'filetype'],
+\	   ['linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok']
+\  ]
+\ }
+
+" === Completion ===
+let g:ale_completion_enabled = 1
+
+" Use tab to trigger completion and tab/shift-tab to navigate results
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
-" === Plugin settings ===
+" Close preview pane once completion is
+autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | pclose | endif
 
-if has('nvim')
-  " == Shougo/deoplete.nvim ==
-  " == carlitux/deoplete-ternjs ==
-  let g:deoplete#enable_at_startup = 1
-  let g:SuperTabDefaultCompletionType = "<c-n>"
-  let g:deoplete#sources#flow#flow_bin = g:flow_path
-  let g:tern_request_timeout = 1
-  let g:tern_show_signature_in_pum = 0
-  set completeopt-=preview
+" use ctrl-j, ctrl-k for selecting omni completion entries
+inoremap <expr> <C-j> pumvisible() ? '<C-n>' : ''
+inoremap <expr> <C-k> pumvisible() ? '<C-p>' : ''
 
-  " == neomake/neomake ==
-  let g:neomake_warning_sign = {
-  \ 'text': 'W',
-  \ 'texthl': 'WarningMsg',
-  \ }
-  let g:neomake_error_sign = {
-  \ 'text': 'E',
-  \ 'texthl': 'ErrorMsg',
-  \ }
-  let g:neomake_javascript_enabled_makers = ['eslint', 'flow']
-  let g:neomake_jsx_enabled_makers = ['eslint', 'flow']
+" select omni completion entry with enter (always supress newline)
+inoremap <expr> <CR> pumvisible() ? "\<C-Y>" : "\<CR>"
 
-  let g:neomake_javascript_flow_exe = g:flow_path
-  let g:neomake_jsx_flow_exe = g:flow_path
-  let g:neomake_javascript_eslint_exe = g:eslint_path
+" === LINTING ===
+let g:ale_fixers = {
+\ '*': ['remove_trailing_lines', 'trim_whitespace'],
+\}
 
-  autocmd! BufWritePost * Neomake
-else
-  " == scrooloose/syntastic ==
-  set statusline+=%#warningmsg#
-  set statusline+=%{SyntasticStatuslineFlag()}
-  set statusline+=%*
-  let g:syntastic_always_populate_loc_list = 0
-  let g:syntastic_auto_jump = 0
-  let g:syntastic_auto_loc_list = 0
-  let g:syntastic_check_on_open = 0
-  let g:syntastic_check_on_wq = 1
-  let g:syntastic_javascript_checkers = ['eslint']
-endif
+" specify some specific ale linter sources, rest are using defaults
+let g:ale_linters = {'javascript': ['eslint'], 'typescript': ['eslint']}
 
-" == mxw/vim-jsx ==
+" Javascript / React improved highlighting/indentation
+let g:javascript_plugin_jsdoc = 1
 let g:jsx_ext_required = 0
 
-
-" === Keybindings ===
-
-" == junegunn/fzf ==
-nnoremap <C-T> :FZF<CR>
-inoremap <C-T> <ESC>:FZF<CR>i
-
-" == scrooloose/nerdtree ==
-nnoremap <C-\> :NERDTreeToggle<CR>
-inoremap <C-\> <ESC>:NERDTreeToggle<CR>
+" map error jumping to [e and ]e
+nnoremap <silent> <Plug>LocationPrevious    :<C-u>exe 'call <SID>LocationPrevious()'<CR>
+nnoremap <silent> <Plug>LocationNext        :<C-u>exe 'call <SID>LocationNext()'<CR>
+nmap <silent> [e  <Plug>LocationPrevious
+nmap <silent> ]e  <Plug>LocationNext
+" make error jumping wrap
+function! <SID>LocationPrevious()
+    try
+        lprev
+    catch /^Vim\%((\a\+)\)\=:E553/
+        llast
+    endtry
+endfunction
+function! <SID>LocationNext()
+    try
+        lnext
+    catch /^Vim\%((\a\+)\)\=:E553/
+        lfirst
+    endtry
+endfunction
